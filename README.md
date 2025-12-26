@@ -380,4 +380,6 @@ A Comparative Study of SVM, CNN, and Bi-LSTM Approaches.
 Proceedings of [Conference Name]. Universitas Syiah Kuala.
 ```
 
+Check The Code : 
+[![Kaggle](https://img.shields.io/badge/Kaggle-View%20Code-20BEFF?style=for-the-badge&logo=kaggle&logoColor=white)](https://www.kaggle.com/code/ammarqurthuby/ser-svm-cnn-biltsm)
 
