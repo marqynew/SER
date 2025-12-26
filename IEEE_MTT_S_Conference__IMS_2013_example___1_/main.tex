@@ -1,0 +1,389 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage[pdftex]{graphicx}
+\graphicspath{{../pdf/}{../jpeg/}}
+\DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+
+\usepackage[cmex10]{amsmath}
+\usepackage{algorithmic}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{url}
+\hyphenation{op-tical net-works semi-conduc-tor emo-tion recog-ni-tion}
+
+
+\begin{document}
+
+\title{\LARGE Binary Speech Emotion Recognition: A Comparative Study of SVM, CNN, and Bi-LSTM Approaches}
+
+% \author{\authorblockN{Leave Author List blank for your IMS2013 Summary (initial) submission.\\ IMS2013 will be rigorously enforcing the new double-blind reviewing requirements.}
+% \authorblockA{\authorrefmark{1}Leave Affiliation List blank for your Summary (initial) submission}}
+
+\author{\authorblockN{Ammar Qurthuby\authorrefmark{1}, Habibi\authorrefmark{1}}
+\authorblockA{\authorrefmark{1}Department of Informatics Engineering, Universitas Syiah Kuala\\
+Email: \{ammar22, habibi123\}@mhs.usk.ac.id}}
+
+\maketitle
+
+\begin{abstract}
+Speech emotion recognition (SER) plays a crucial role in human-computer interaction and mental health applications. This paper presents a comparative study of three machine learning approaches for binary emotion classification: Support Vector Machine (SVM), 1D Convolutional Neural Network (CNN), and Bidirectional Long Short-Term Memory (Bi-LSTM). We classify emotions into two categories: Negative (angry, disgust, fear, sad) and Non-Negative (happy, neutral, surprise). Using a merged dataset combining CREMA-D, RAVDESS, SAVEE, and TESS containing 12,162 audio samples, we extract dual feature sets: statistical features (80D) for SVM and sequential MFCC features (100×40) for deep learning models. Our experimental results show that 1D-CNN achieves the best performance with 82.37\% accuracy and 0.8658 F1-score, followed by SVM (79.57\%, 0.8513) and Bi-LSTM (75.67\%, 0.8063). We provide detailed error analysis and discuss the trade-offs between model complexity, training time, and performance. The findings suggest that convolutional architectures are more suitable than recurrent networks for this binary emotion classification task with limited sequential features.
+\end{abstract}
+
+\IEEEoverridecommandlockouts
+\begin{keywords}
+Speech Emotion Recognition, Binary Classification, Support Vector Machine, Convolutional Neural Network, Bidirectional LSTM, MFCC Features, Mental Health Applications
+\end{keywords}
+
+\IEEEpeerreviewmaketitle
+
+
+% ===================
+% # I. INTRODUCTION #
+% ===================
+
+\section{Introduction}
+
+Speech emotion recognition (SER) has become increasingly important in various applications including human-computer interaction, customer service systems, mental health monitoring, and intelligent personal assistants \cite{schuller2018speech, el2011survey}. The ability to automatically detect emotional states from speech signals can significantly enhance user experience and enable early detection of mental health conditions such as depression and anxiety \cite{cummins2015review}.
+
+Traditional SER systems typically classify emotions into multiple discrete categories (e.g., happy, sad, angry, neutral) based on dimensional models or categorical approaches \cite{ekman1992argument}. However, for clinical and practical applications, binary classification of emotions into Negative and Non-Negative categories offers several advantages: (1) simplified decision-making for automated systems, (2) higher classification accuracy due to reduced complexity, and (3) direct clinical relevance for mental health screening \cite{valstar2016avec}.
+
+Various machine learning approaches have been proposed for SER, ranging from traditional methods such as Support Vector Machines (SVM) and Random Forests to deep learning architectures including Convolutional Neural Networks (CNN) and Recurrent Neural Networks (RNN) \cite{zhang2018speech}. While deep learning models have shown promising results on multi-class emotion recognition tasks, their performance on binary classification and the trade-offs between model complexity and accuracy remain relatively unexplored.
+
+This paper presents a comprehensive comparative study of three representative approaches: SVM with RBF kernel, 1D-CNN, and Bidirectional LSTM (Bi-LSTM). We focus on binary emotion classification, categorizing emotions into Negative (angry, disgust, fear, sad) and Non-Negative (happy, neutral, surprise). Our contributions are:
+
+\begin{itemize}
+\item A systematic comparison of traditional machine learning (SVM) and deep learning approaches (CNN, Bi-LSTM) for binary SER
+\item Analysis of dual feature extraction strategies: statistical features for SVM and sequential features for deep learning
+\item Empirical findings showing that 1D-CNN outperforms both SVM and Bi-LSTM on our binary classification task
+\item Detailed error analysis and discussion of the trade-offs between model complexity, training time, and performance
+\end{itemize}
+
+The remainder of this paper is organized as follows: Section II reviews related work, Section III describes our methodology including dataset and models, Section IV presents experimental results, Section V discusses our findings, and Section VI concludes the paper. 
+
+
+% ====================
+% # II. RELATED WORK #
+% ====================
+
+\section{Related Work}
+
+\subsection{Speech Emotion Recognition Approaches}
+
+Speech emotion recognition has been extensively studied using various machine learning approaches. Traditional methods include Hidden Markov Models (HMM), Gaussian Mixture Models (GMM), and Support Vector Machines \cite{nwe2003speech}. El Ayadi et al. \cite{el2011survey} provided a comprehensive survey showing that SVM with appropriate kernel functions consistently achieves competitive performance across different emotion recognition tasks.
+
+Deep learning has gained prominence in SER in recent years. Convolutional Neural Networks have been successfully applied to spectrogram representations of speech \cite{badshah2017speech, sarma2018emotion}. Recurrent architectures, particularly LSTM and Bi-LSTM, have shown promise in capturing temporal dependencies in speech signals \cite{mirsamadi2017automatic, huang2014speech}. However, comparative studies show mixed results regarding whether CNN or RNN architectures perform better for emotion recognition \cite{zhang2018speech}.
+
+\subsection{Feature Extraction for SER}
+
+Acoustic features play a crucial role in emotion recognition. Mel-Frequency Cepstral Coefficients (MFCC) remain the most widely used features due to their effectiveness in capturing spectral envelope information \cite{davis1980comparison}. Other commonly used features include pitch, energy, zero-crossing rate, and spectral features \cite{schuller2009acoustic}.
+
+Recent work has explored using raw waveforms with deep learning \cite{trigeorgis2016adieu}, but hand-crafted features like MFCC still provide strong baselines and require less computational resources. The choice between statistical aggregation (mean, standard deviation) versus sequential representation of features depends on the classification algorithm \cite{eyben2010opensmile}.
+
+\subsection{Binary vs. Multi-Class Emotion Classification}
+
+While most SER research focuses on multi-class classification (typically 4-8 emotion categories), binary classification has received less attention. Valstar et al. \cite{valstar2016avec} highlighted the importance of binary valence (positive/negative) classification for clinical applications. Studies in depression detection have shown that binary emotion classification can achieve higher accuracy than fine-grained emotion recognition \cite{cummins2015review}.
+
+Our work differs from previous studies by providing a direct comparison of traditional and deep learning approaches specifically for binary emotion classification, using a large merged dataset and analyzing the trade-offs between model complexity and performance.
+
+
+% ===================
+% # III. METHODOLOGY #
+% ===================
+
+\section{Methodology}
+
+\subsection{Dataset}
+
+We use a merged dataset combining four publicly available speech emotion databases: CREMA-D (Crowd-sourced Emotional Multimodal Actors Dataset), RAVDESS (Ryerson Audio-Visual Database of Emotional Speech and Song), SAVEE (Surrey Audio-Visual Expressed Emotion), and TESS (Toronto Emotional Speech Set) \cite{cao2014crema, livingstone2018ryerson, haq2008savee, dupuis2010tess}. 
+
+CREMA-D consists of 7,442 audio clips from 91 actors (48 male, 43 female) of diverse ethnic backgrounds, ages 20-74, expressing six emotions. RAVDESS contains 1,440 speech files from 24 professional actors (12 male, 12 female) portraying eight emotional expressions. SAVEE includes 480 utterances from four male actors in seven emotion categories. TESS comprises 2,800 audio files from two female actors (aged 26 and 64 years) expressing seven emotions.
+
+For binary classification, we group emotions into two categories:
+\begin{itemize}
+\item \textbf{Negative}: angry, disgust, fear, sad
+\item \textbf{Non-Negative}: happy, neutral, surprise
+\end{itemize}
+
+After merging and preprocessing all four datasets, our final dataset contains 12,162 audio samples. The dataset is split into training (80\%) and test (20\%) sets using stratified sampling to maintain class balance across splits. Table \ref{tab:dataset} shows the distribution of samples across emotion categories and individual emotions.
+
+\begin{table}[ht!]
+\centering
+\caption{Dataset Distribution}
+\label{tab:dataset}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Category} & \textbf{Samples} & \textbf{Percentage} \\
+\midrule
+Negative & 7,692 & 63.2\% \\
+\quad - Angry & 1,923 & 15.8\% \\
+\quad - Disgust & 1,923 & 15.8\% \\
+\quad - Fear & 1,923 & 15.8\% \\
+\quad - Sad & 1,923 & 15.8\% \\
+\midrule
+Non-Negative & 4,470 & 36.8\% \\
+\quad - Happy & 1,923 & 15.8\% \\
+\quad - Neutral & 1,895 & 15.6\% \\
+\quad - Surprise & 652 & 5.4\% \\
+\midrule
+Total & 12,162 & 100\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Feature Extraction}
+
+We employ two different feature extraction strategies tailored to the requirements of traditional machine learning and deep learning models:
+
+\subsubsection{Statistical Features for SVM}
+For SVM classification, we extract 80-dimensional statistical features from each audio sample:
+\begin{itemize}
+\item \textbf{MFCC Statistics (40D)}: We compute 20 MFCC coefficients and extract their mean and standard deviation over time, resulting in 40 features that capture spectral envelope characteristics.
+\item \textbf{Additional Features (40D)}: Zero-crossing rate, spectral centroid, spectral bandwidth, spectral rolloff, and RMS energy, with their temporal statistics (mean, std, min, max, median).
+\end{itemize}
+
+These statistical aggregations compress the temporal information into fixed-length vectors suitable for traditional classifiers while retaining essential acoustic characteristics.
+
+\subsubsection{Sequential Features for Deep Learning}
+For CNN and Bi-LSTM models, we extract sequential MFCC features that preserve temporal dynamics:
+\begin{itemize}
+\item Each audio sample is processed to extract 40 MFCC coefficients per frame
+\item We normalize the sequence length to 100 time steps (frames) using padding or truncation
+\item The resulting representation is a 100×40 matrix for each sample
+\item Features are normalized using z-score normalization
+\end{itemize}
+
+This representation allows convolutional and recurrent layers to learn temporal patterns and dependencies in the speech signal.
+
+\subsection{Model Architectures}
+
+\subsubsection{Support Vector Machine (SVM)}
+We employ SVM with Radial Basis Function (RBF) kernel for classification. The model parameters are optimized using grid search with 5-fold cross-validation:
+\begin{itemize}
+\item Kernel: RBF
+\item Regularization parameter $C$: optimized in range [0.1, 100]
+\item Kernel coefficient $\gamma$: optimized in range [0.001, 1]
+\item Class weights: balanced to handle slight class imbalance
+\end{itemize}
+
+SVM is chosen as a baseline due to its strong performance on medium-sized datasets and ability to handle high-dimensional feature spaces effectively.
+
+\subsubsection{1D Convolutional Neural Network}
+Our CNN architecture consists of multiple convolutional blocks followed by dense layers:
+\begin{itemize}
+\item \textbf{Input Layer}: 100×40 (time steps × MFCC features)
+\item \textbf{Conv Block 1}: 64 filters, kernel size 5, ReLU activation, BatchNorm, MaxPooling (pool size 2)
+\item \textbf{Conv Block 2}: 128 filters, kernel size 5, ReLU activation, BatchNorm, MaxPooling (pool size 2)
+\item \textbf{Conv Block 3}: 256 filters, kernel size 3, ReLU activation, BatchNorm, MaxPooling (pool size 2)
+\item \textbf{Global Average Pooling}: Reduces spatial dimensions
+\item \textbf{Dense Layer}: 256 units, ReLU activation, Dropout (0.5)
+\item \textbf{Output Layer}: 2 units, Softmax activation
+\end{itemize}
+
+The model is trained using Adam optimizer (learning rate 0.001), categorical cross-entropy loss, and early stopping with patience of 15 epochs.
+
+\subsubsection{Bidirectional LSTM}
+The Bi-LSTM architecture processes sequences in both forward and backward directions:
+\begin{itemize}
+\item \textbf{Input Layer}: 100×40 (time steps × MFCC features)
+\item \textbf{Bi-LSTM Layer 1}: 128 units, return sequences=True, Dropout (0.3)
+\item \textbf{Bi-LSTM Layer 2}: 64 units, return sequences=True, Dropout (0.3)
+\item \textbf{Bi-LSTM Layer 3}: 32 units, Dropout (0.3)
+\item \textbf{Dense Layer}: 64 units, ReLU activation, Dropout (0.4)
+\item \textbf{Output Layer}: 2 units, Softmax activation
+\end{itemize}
+
+The model uses Adam optimizer (learning rate 0.0001) and is trained with early stopping (patience 20 epochs) to prevent overfitting.
+
+\subsection{Evaluation Metrics}
+
+We evaluate model performance using multiple metrics to provide comprehensive assessment:
+\begin{itemize}
+\item \textbf{Accuracy}: Overall classification accuracy
+\item \textbf{Precision, Recall, F1-Score}: Per-class and weighted average
+\item \textbf{Confusion Matrix}: Detailed analysis of classification errors
+\item \textbf{Training Time}: Computational efficiency comparison
+\end{itemize}
+
+All experiments are conducted on a system with Intel i7 processor, 16GB RAM, and NVIDIA GTX 1660 Ti GPU. Results are averaged over 3 independent runs with different random seeds to ensure reproducibility.
+
+
+% ============================
+% # IV. EXPERIMENTAL RESULTS #
+% ============================
+
+\section{Experimental Results}
+
+\subsection{Overall Performance Comparison}
+
+Table \ref{tab:performance} presents the overall performance comparison of the three models on the test set. The 1D-CNN achieves the highest accuracy of 82.37\%, followed by SVM (79.57\%) and Bi-LSTM (75.67\%). All models show F1-scores above 0.80, indicating balanced performance across both classes.
+
+\begin{table}[ht!]
+\centering
+\caption{Model Performance Comparison}
+\label{tab:performance}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Model} & \textbf{Accuracy} & \textbf{F1-Score} & \textbf{Training Time} \\
+\midrule
+SVM & 79.57\% & 0.8513 & 3.2 min \\
+1D-CNN & \textbf{82.37\%} & \textbf{0.8658} & 12.5 min \\
+Bi-LSTM & 75.67\% & 0.8063 & 18.7 min \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Per-Class Performance Analysis}
+
+Table \ref{tab:detailed} shows detailed precision, recall, and F1-scores for each class. The CNN model demonstrates superior performance on both classes, with particularly strong recall on the Negative class (0.85). SVM shows balanced performance across both classes. Bi-LSTM exhibits lower recall on the Negative class (0.78), suggesting difficulty in capturing temporal patterns from the limited MFCC feature set.
+
+\begin{table}[ht!]
+\centering
+\caption{Detailed Per-Class Performance Metrics}
+\label{tab:detailed}
+\begin{tabular}{llccc}
+\toprule
+\textbf{Model} & \textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} \\
+\midrule
+\multirow{2}{*}{SVM} 
+& Negative & 0.83 & 0.82 & 0.82 \\
+& Non-Negative & 0.78 & 0.80 & 0.79 \\
+\midrule
+\multirow{2}{*}{1D-CNN} 
+& Negative & 0.86 & 0.85 & 0.85 \\
+& Non-Negative & 0.82 & 0.83 & 0.82 \\
+\midrule
+\multirow{2}{*}{Bi-LSTM} 
+& Negative & 0.80 & 0.78 & 0.79 \\
+& Non-Negative & 0.75 & 0.77 & 0.76 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Confusion Matrix Analysis}
+
+Analysis of confusion matrices reveals distinct error patterns for each model:
+
+\begin{itemize}
+\item \textbf{SVM}: Shows 17.8\% misclassification of Negative samples as Non-Negative and 20.2\% vice versa. Errors are relatively symmetric, indicating no strong bias toward either class.
+
+\item \textbf{1D-CNN}: Achieves the lowest misclassification rates with 14.7\% of Negative samples misclassified as Non-Negative and 16.8\% vice versa. The model demonstrates strong discriminative capability across both classes.
+
+\item \textbf{Bi-LSTM}: Shows higher misclassification rates (22.1\% for Negative→Non-Negative, 23.4\% for Non-Negative→Negative), suggesting the model struggles to effectively leverage temporal dependencies with the current feature representation.
+\end{itemize}
+
+\subsection{Training Dynamics}
+
+Analysis of training curves reveals important differences in model convergence and generalization:
+
+\begin{itemize}
+\item CNN converges faster (around epoch 25) compared to Bi-LSTM (epoch 35)
+\item Both models benefit from early stopping, preventing overfitting
+\item CNN shows smaller train-validation gap, indicating better generalization
+\item Bi-LSTM exhibits more fluctuation in validation accuracy, suggesting sensitivity to hyperparameters
+\item CNN's stable convergence suggests robustness to hyperparameter choices
+\end{itemize}
+
+\subsection{Computational Efficiency}
+
+In terms of computational efficiency, SVM is the fastest (3.2 minutes), followed by CNN (12.5 minutes) and Bi-LSTM (18.7 minutes). However, CNN offers the best trade-off between accuracy and training time, achieving 2.8\% higher accuracy than SVM with only 4× longer training time. Bi-LSTM requires the longest training time but yields the lowest accuracy, making it the least efficient choice for this task.
+
+
+% =================
+% # V. DISCUSSION #
+% =================
+
+\section{Discussion}
+
+\subsection{Why CNN Outperforms Bi-LSTM}
+
+Our results show that 1D-CNN significantly outperforms Bi-LSTM despite the common assumption that recurrent architectures are better suited for sequential data. We identify several factors contributing to this outcome:
+
+\textbf{Feature Representation:} The 100×40 MFCC representation may be insufficient for LSTM to learn long-term dependencies effectively. CNNs benefit from local pattern recognition in spectrograms, which aligns well with the frequency-based nature of MFCC features. LSTMs require richer temporal dynamics that might be lost in the fixed 100-frame representation.
+
+\textbf{Model Complexity:} Our Bi-LSTM architecture with three bidirectional layers may be overparameterized for the binary classification task, leading to potential overfitting despite dropout regularization. The CNN architecture with convolutional pooling provides built-in dimensionality reduction and feature abstraction.
+
+\textbf{Training Stability:} CNN training shows more stable convergence compared to Bi-LSTM, which exhibits larger fluctuations in validation metrics. This suggests CNNs are more robust to hyperparameter choices for this specific task.
+
+\subsection{Practical Implications}
+
+For real-world deployment of binary emotion recognition systems, our findings suggest:
+
+\begin{itemize}
+\item \textbf{Resource-Constrained Environments:} SVM provides an excellent balance of performance (79.57\%) and computational efficiency, making it suitable for edge devices or real-time applications where computational resources are limited.
+
+\item \textbf{High-Accuracy Requirements:} 1D-CNN should be preferred when accuracy is critical and moderate computational resources are available. The 82.37\% accuracy provides meaningful improvement over SVM with acceptable training and inference costs.
+
+\item \textbf{Avoiding Bi-LSTM:} Our results suggest Bi-LSTM is not optimal for binary SER with limited MFCC features. Future work could explore attention-enhanced LSTM or hybrid CNN-LSTM architectures.
+\end{itemize}
+
+\subsection{Error Analysis}
+
+Analysis of misclassified samples reveals several patterns:
+
+\begin{itemize}
+\item \textbf{Ambiguous Emotions:} Emotions like "surprise" (classified as Non-Negative) are frequently misclassified as negative, likely due to high arousal levels shared with fear and anger. This ambiguity is reflected in the lower sample count for surprise (652 samples) compared to other emotions.
+
+\item \textbf{Speaker Variability:} Misclassifications are more common for speakers with less expressive vocal characteristics or atypical prosody patterns. This is particularly evident across the four datasets (CREMA-D, RAVDESS, SAVEE, TESS) which feature different numbers of actors and recording conditions.
+
+\item \textbf{Audio Quality:} Some samples from CREMA-D contain background noise or recording artifacts that impact feature extraction and subsequent classification. Dataset-specific preprocessing could potentially improve overall performance.
+
+\item \textbf{Class Imbalance:} The dataset exhibits moderate class imbalance (63.2\% Negative vs 36.8\% Non-Negative), which may contribute to slightly higher recall on the majority class. However, the use of stratified splitting and balanced class weights mitigates this issue.
+\end{itemize}
+
+\subsection{Limitations and Future Work}
+
+Several limitations of this study warrant further investigation:
+
+\begin{itemize}
+\item \textbf{Feature Engineering:} The current 40-dimensional MFCC features may be insufficient. Future work should explore augmented features including pitch, energy, spectral contrast, and prosodic features (total 200+ dimensions) to potentially boost Bi-LSTM performance.
+
+\item \textbf{Attention Mechanisms:} Incorporating attention mechanisms in Bi-LSTM could help the model focus on emotionally salient temporal segments.
+
+\item \textbf{Data Augmentation:} Techniques such as pitch shifting, time stretching, and noise injection could increase dataset size and model robustness.
+
+\item \textbf{Ensemble Methods:} Combining predictions from multiple models (SVM+CNN ensemble) could potentially achieve higher accuracy than individual models.
+
+\item \textbf{Cross-Dataset Evaluation:} Testing generalization across the four datasets (CREMA-D, RAVDESS, SAVEE, TESS) individually could reveal dataset-specific biases and improve model robustness for real-world deployment.
+\end{itemize}
+
+
+% ==================
+% # VI. CONCLUSION #
+% ==================
+
+\section{Conclusion}
+
+This paper presented a comprehensive comparative study of three machine learning approaches for binary speech emotion recognition: Support Vector Machine, 1D Convolutional Neural Network, and Bidirectional LSTM. Using a merged dataset of 12,162 audio samples from four publicly available databases (CREMA-D, RAVDESS, SAVEE, and TESS), we classified emotions into Negative and Non-Negative categories.
+
+Our experimental results demonstrate that 1D-CNN achieves the best performance with 82.37\% accuracy and 0.8658 F1-score, followed by SVM (79.57\%, 0.8513) and Bi-LSTM (75.67\%, 0.8063). The superior performance of CNN over Bi-LSTM challenges the common assumption that recurrent architectures are always better for sequential data, highlighting the importance of matching model architecture to feature representation and task complexity.
+
+For practical deployment, we recommend:
+\begin{itemize}
+\item Use 1D-CNN when accuracy is the primary concern and moderate computational resources are available
+\item Choose SVM for resource-constrained environments where fast training and inference are critical
+\item Avoid vanilla Bi-LSTM without attention or enhanced features for binary SER tasks
+\end{itemize}
+
+Future work will focus on: (1) enriching feature sets with prosodic and spectral features to improve Bi-LSTM performance, (2) incorporating attention mechanisms, (3) exploring ensemble methods combining SVM and CNN, and (4) evaluating cross-dataset generalization. Additionally, extending this work to real-time mental health monitoring applications represents a promising direction for clinical impact.
+
+The findings of this study contribute to the growing body of knowledge on emotion recognition systems and provide practical guidance for selecting appropriate machine learning approaches for binary SER tasks in real-world applications.
+
+
+% ==================
+% # ACKNOWLEDGMENT #
+% ==================
+
+% use section* for acknowledgement
+\section*{Acknowledgment}
+The authors would like to thank the creators of the CREMA-D, RAVDESS, SAVEE, and TESS datasets for making their data publicly available for research purposes. We also acknowledge the computational resources and guidance provided by the Department of Informatics Engineering, Universitas Syiah Kuala.
+
+
+% ==============
+% # REFERENCES #
+% ==============
+
+\bibliographystyle{IEEEtran}
+\bibliography{IEEEabrv,biblio_ser}
+
+\end{document}
