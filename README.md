@@ -2,7 +2,7 @@
 
 [![Kaggle](https://img.shields.io/badge/Kaggle-View%20Code-20BEFF?style=for-the-badge&logo=kaggle&logoColor=white)](https://www.kaggle.com/code/ammarqurthuby/ser-svm-cnn-biltsm)
 [![Paper](https://img.shields.io/badge/Paper-IEEE%20Format-00629B?style=for-the-badge&logo=ieee&logoColor=white)](IEEE_MTT_S_Conference__IMS_2013_example___1_/main.pdf)
-[![Dataset](https://img.shields.io/badge/Dataset-12.2K%20Samples-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)]([merged_ser_dataset/](https://www.kaggle.com/datasets/ammarqurthuby/merged-ser-dataset1/data))
+[![Dataset](https://img.shields.io/badge/Dataset-12.2K%20Samples-FF6F00?style=for-the-badge&logo=databricks&logoColor=white)](https://www.kaggle.com/datasets/ammarqurthuby/merged-ser-dataset1/data)
 
 > **A comprehensive comparative study of SVM, CNN, and Bi-LSTM approaches for binary emotion classification from speech signals**
 
