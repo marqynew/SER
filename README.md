@@ -630,7 +630,7 @@ Special thanks to:
 
 ### 🌟 If this project helped you, please consider giving it a star! 🌟
 
-**Built with ❤️ by Ammar Qurthuby & Habibi**
+**Built with by Ammar Qurthuby & Habibi**
 
 *Universitas Syiah Kuala - Informatics Engineering*
 
@@ -645,4 +645,3 @@ Special thanks to:
 
 **Last Updated**: December 26, 2025  
 **Version**: 1.0.0  
-**Status**: ✅ Ready for Submission
