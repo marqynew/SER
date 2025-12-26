@@ -1,0 +1,509 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage[pdftex]{graphicx}
+\graphicspath{{../pdf/}{../jpeg/}}
+\DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+
+\usepackage[cmex10]{amsmath}
+\usepackage{algorithmic}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{url}
+\hyphenation{op-tical net-works semi-conduc-tor emo-tion recog-ni-tion}
+
+
+\begin{document}
+
+\title{\LARGE Binary Speech Emotion Recognition: A Comparative Study of SVM, CNN, and Bi-LSTM Approaches\\
+\large \textit{Progress Report}}
+
+\author{\authorblockN{Ammar Qurthuby\authorrefmark{1}, Habibi\authorrefmark{1}}
+\authorblockA{\authorrefmark{1}Department of Informatics Engineering, Universitas Syiah Kuala\\
+Email: \{ammar22, habibi123\}@mhs.usk.ac.id}}
+
+\maketitle
+
+\begin{abstract}
+This progress report presents the implementation status and preliminary results of our speech emotion recognition research project. We have successfully merged four publicly available databases (CREMA-D, RAVDESS, SAVEE, and TESS) containing 12,162 audio samples and implemented a binary emotion classification system. The dataset has been preprocessed and split into Negative (angry, disgust, fear, sad) comprising 7,692 samples (63.2\%) and Non-Negative (happy, neutral, surprise) comprising 4,470 samples (36.8\%). We have completed the implementation of dual feature extraction strategies: 80-dimensional statistical features for traditional machine learning and 100×40 sequential MFCC features for deep learning models. The SVM baseline model has been trained and evaluated, achieving 79.57\% test accuracy with balanced performance across both classes. Per-class results show Precision of 0.82/0.75, Recall of 0.86/0.68, and F1-Score of 0.84/0.71 for Negative/Non-Negative classes respectively. Deep learning models (CNN and Bi-LSTM) are currently under development. This report details the completed work, preliminary findings, and remaining tasks toward project completion.
+\end{abstract}
+
+\IEEEoverridecommandlockouts
+\begin{keywords}
+Speech Emotion Recognition, Binary Classification, Support Vector Machine, Progress Report, MFCC Features, Dataset Merging
+\end{keywords}
+
+\IEEEpeerreviewmaketitle
+
+
+% ===================
+% # I. INTRODUCTION #
+% ===================
+
+\section{Introduction}
+
+\subsection{Project Overview}
+
+This progress report documents the implementation of a comparative study on binary speech emotion recognition using three machine learning approaches: Support Vector Machine (SVM), 1D Convolutional Neural Network (CNN), and Bidirectional Long Short-Term Memory (Bi-LSTM). As proposed in our initial plan, we aim to classify emotions into two categories: Negative (angry, disgust, fear, sad) and Non-Negative (happy, neutral, surprise) using a merged dataset from multiple sources.
+
+\subsection{Objectives Recap}
+
+The primary objectives of this research are:
+
+\begin{enumerate}
+\item Develop a comprehensive merged dataset from four publicly available databases
+\item Implement and evaluate traditional machine learning (SVM) as baseline
+\item Develop deep learning architectures (CNN and Bi-LSTM) for comparison
+\item Analyze performance trade-offs between different approaches
+\item Provide deployment recommendations for practical applications
+\end{enumerate}
+
+\subsection{Progress Summary}
+
+As of Week 6 (December 2025), we have successfully completed several major milestones:
+
+\begin{itemize}
+\item \textbf{Dataset Collection and Preprocessing:} Merged four databases and preprocessed 12,162 audio samples with stratified train-test split (100\% complete)
+
+\item \textbf{Feature Extraction Pipeline:} Implemented dual feature strategies for traditional ML and deep learning approaches (100\% complete)
+
+\item \textbf{SVM Baseline Development:} Trained and evaluated SVM with RBF kernel, achieving 79.57\% test accuracy (100\% complete)
+
+\item \textbf{CNN Architecture Design:} Designed and partially implemented 1D-CNN model with three convolutional blocks (80\% complete)
+
+\item \textbf{Bi-LSTM Architecture Planning:} Completed architecture design with bidirectional LSTM layers (60\% complete)
+\end{itemize}
+
+The following sections detail our methodology, preliminary experimental results, and remaining work.
+
+
+% =========================
+% # II. LITERATURE REVIEW #
+% =========================
+
+\section{Literature Review}
+
+\subsection{Speech Emotion Recognition Approaches}
+
+Speech emotion recognition remains an active research area with applications in human-computer interaction and mental health monitoring \cite{schuller2018speech}. El Ayadi et al. \cite{el2011survey} provided a comprehensive survey demonstrating that effective SER systems require careful consideration of feature extraction, classification algorithms, and dataset characteristics.
+
+Traditional approaches using Support Vector Machines have shown consistent performance across various emotion recognition tasks \cite{nwe2003speech}. More recent deep learning approaches, particularly CNNs operating on spectrograms \cite{badshah2017speech, sarma2018emotion} and RNNs capturing temporal dependencies \cite{mirsamadi2017automatic, huang2014speech}, have achieved state-of-the-art results on several benchmarks.
+
+\subsection{Binary vs. Multi-Class Classification}
+
+While most SER research focuses on multi-class emotion recognition (4-8 categories), binary classification into positive/negative valence has gained attention for clinical applications \cite{valstar2016avec}. Binary classification typically achieves higher accuracy than fine-grained emotion recognition and provides sufficient information for mental health screening applications \cite{cummins2015review}.
+
+\subsection{Feature Extraction Methods}
+
+Mel-Frequency Cepstral Coefficients (MFCC) remain the most widely adopted features for SER due to their effectiveness in representing spectral envelope information relevant to human auditory perception \cite{davis1980comparison}. The choice between statistical aggregation (mean, standard deviation) and preserving temporal sequences depends on the classification algorithm: traditional classifiers require fixed-length vectors, while deep learning models can process variable-length sequences \cite{eyben2010opensmile}.
+
+Our dual feature extraction strategy addresses both requirements, enabling fair comparison between traditional and deep learning approaches.
+
+
+% ===================
+% # III. METHODOLOGY #
+% ===================
+
+\section{Methodology}
+
+\subsection{Dataset Construction}
+
+\subsubsection{Source Databases}
+
+We merged four publicly available speech emotion databases:
+
+\begin{enumerate}
+\item \textbf{CREMA-D} (Crowd-sourced Emotional Multimodal Actors Dataset) \cite{cao2014crema}: Contains 7,442 audio clips from 91 actors expressing six emotions with multiple intensity levels.
+
+\item \textbf{RAVDESS} (Ryerson Audio-Visual Database of Emotional Speech and Song) \cite{livingstone2018ryerson}: Includes 1,440 speech files from 24 professional actors (12 male, 12 female) aged 21-33 years.
+
+\item \textbf{SAVEE} (Surrey Audio-Visual Expressed Emotion Database) \cite{haq2008savee}: Comprises 480 utterances from 4 male actors in 7 emotion categories.
+
+\item \textbf{TESS} (Toronto Emotional Speech Set) \cite{dupuis2010tess}: Provides 2,800 audio files from 2 female actors (aged 26 and 64) reading 200 target words in 7 emotions.
+\end{enumerate}
+
+\subsubsection{Emotion Mapping and Distribution}
+
+Original emotion labels from each database were mapped to our binary classification scheme:
+
+\begin{itemize}
+\item \textbf{Negative Class}: angry, disgust, fear, sad
+\item \textbf{Non-Negative Class}: happy, neutral, surprise
+\end{itemize}
+
+Table~\ref{tab:dataset_distribution} presents the final dataset composition after merging and preprocessing.
+
+\begin{table}[ht!]
+\centering
+\caption{Merged Dataset Distribution (12,162 Samples)}
+\label{tab:dataset_distribution}
+\begin{tabular}{llrr}
+\toprule
+\textbf{Category} & \textbf{Emotion} & \textbf{Count} & \textbf{\% Total} \\
+\midrule
+\multirow{4}{*}{Negative} 
+  & Angry    & 1,923 & 15.8\% \\
+  & Disgust  & 1,923 & 15.8\% \\
+  & Fear     & 1,923 & 15.8\% \\
+  & Sad      & 1,923 & 15.8\% \\
+  \cmidrule{2-4}
+  & \textit{Subtotal} & \textit{7,692} & \textit{63.2\%} \\
+\midrule
+\multirow{3}{*}{Non-Negative} 
+  & Happy    & 1,923 & 15.8\% \\
+  & Neutral  & 1,895 & 15.6\% \\
+  & Surprise & 652   & 5.4\% \\
+  \cmidrule{2-4}
+  & \textit{Subtotal} & \textit{4,470} & \textit{36.8\%} \\
+\midrule
+\multicolumn{2}{l}{\textbf{Total}} & \textbf{12,162} & \textbf{100\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The dataset exhibits moderate class imbalance with a 1.72:1 ratio (Negative:Non-Negative). Additionally, the surprise emotion is notably underrepresented (652 samples, 5.4\%), which may impact model performance on this specific emotion.
+
+\subsubsection{Data Splitting}
+
+The merged dataset was split using stratified sampling to maintain class balance:
+
+\begin{itemize}
+\item \textbf{Training set:} 9,730 samples (80\% of total dataset)
+\item \textbf{Test set:} 2,432 samples (20\% of total dataset)
+\end{itemize}
+
+Stratification ensures proportional representation of both emotion classes (Negative and Non-Negative) and all seven individual emotions in both training and test sets, enabling reliable and unbiased performance evaluation.
+
+\subsection{Feature Extraction}
+
+We implemented two feature extraction strategies to accommodate different model requirements:
+
+\subsubsection{Statistical Features for SVM}
+
+For traditional machine learning, we extracted 80-dimensional statistical features from each audio sample:
+
+\begin{itemize}
+\item \textbf{MFCC Statistics (40D):} Mean and standard deviation of 20 MFCC coefficients computed over the entire utterance, capturing spectral envelope characteristics.
+
+\item \textbf{Acoustic Features (40D):} Mean and standard deviation of five key acoustic properties:
+  \begin{itemize}
+  \item Zero-crossing rate (2D) -- indicates frequency content
+  \item Spectral centroid (2D) -- represents brightness of sound
+  \item Spectral bandwidth (2D) -- measures frequency range
+  \item Spectral rolloff (2D) -- indicates high-frequency content
+  \item RMS energy (2D) -- captures overall loudness
+  \item 15 additional spectral features (30D) -- complementary spectral descriptors
+  \end{itemize}
+\end{itemize}
+
+All features were extracted using the \texttt{librosa} Python library (version~0.9.2) with consistent parameters: sampling rate of 22,050~Hz, frame length of 2,048 samples, and hop length of 512 samples.
+
+\subsubsection{Sequential Features for Deep Learning}
+
+For CNN and Bi-LSTM models, we extracted sequential MFCC representations that preserve temporal dynamics:
+
+\begin{itemize}
+\item \textbf{Frame-level Features:} 40 MFCC coefficients extracted per frame
+\item \textbf{Sequence Length:} Fixed to 100 time steps for uniform input shape
+\item \textbf{Padding Strategy:} Zero-padding applied to shorter sequences
+\item \textbf{Truncation:} Longer sequences trimmed to 100 frames from the center
+\item \textbf{Resulting Shape:} 100×40 matrices per audio sample
+\item \textbf{Normalization:} Z-score standardization applied: $(x - \mu) / \sigma$
+\end{itemize}
+
+This sequential representation allows deep learning models to learn temporal patterns and dependencies that are lost when using statistical aggregation (mean, standard deviation) required by traditional classifiers.
+
+\subsection{SVM Implementation (Completed)}
+
+\subsubsection{Architecture and Hyperparameters}
+
+We implemented an SVM classifier with the following configuration:
+
+\begin{itemize}
+\item \textbf{Kernel}: Radial Basis Function (RBF)
+\item \textbf{Hyperparameter Optimization}: 5-fold cross-validation grid search
+\item \textbf{Search Space}:
+  \begin{itemize}
+  \item Regularization parameter $C$: [0.1, 1, 10, 100]
+  \item Kernel coefficient $\gamma$: [0.001, 0.01, 0.1, 1]
+  \end{itemize}
+\item \textbf{Class Weights}: Balanced to handle class imbalance
+\item \textbf{Optimal Parameters}: $C = 10$, $\gamma = 0.01$
+\end{itemize}
+
+\subsubsection{Training Process}
+
+The SVM classifier was trained on 80-dimensional statistical feature vectors extracted from 9,730 training samples. Grid search with 5-fold cross-validation explored 16 hyperparameter combinations (4 values of $C$ × 4 values of $\gamma$), requiring approximately 45 minutes of computation on our system (Intel Core i7 processor, 16GB RAM, no GPU acceleration). The optimal hyperparameters were selected based on maximizing cross-validation weighted F1-score to account for class imbalance. The final model with $C = 10$ and $\gamma = 0.01$ was then retrained on the entire training set for evaluation on the held-out test set.
+
+\subsection{CNN Architecture (In Progress)}
+
+We designed a 1D Convolutional Neural Network architecture for sequential MFCC processing:
+
+\begin{itemize}
+\item \textbf{Input Layer:} Accepts 100×40 MFCC sequences
+\item \textbf{Conv Block 1:} 64 filters with kernel size 5, ReLU activation, BatchNorm, MaxPooling (pool size 2)
+\item \textbf{Conv Block 2:} 128 filters with kernel size 5, ReLU activation, BatchNorm, MaxPooling (pool size 2)
+\item \textbf{Conv Block 3:} 256 filters with kernel size 3, ReLU activation, BatchNorm, MaxPooling (pool size 2)
+\item \textbf{Global Average Pooling:} Reduces spatial dimensions while retaining learned features
+\item \textbf{Dense Layer 1:} 256 units with ReLU activation and Dropout (rate: 0.5)
+\item \textbf{Output Layer:} 2 units with softmax activation for binary classification
+\end{itemize}
+
+Each convolutional block includes batch normalization for training stability and max pooling for dimensionality reduction. The model is currently being trained with Adam optimizer (learning rate: 0.001, $\beta_1 = 0.9$, $\beta_2 = 0.999$) for up to 100 epochs with early stopping (patience: 15 epochs monitoring validation loss).
+
+\subsection{Bi-LSTM Architecture (Planned)}
+
+The Bidirectional LSTM architecture has been designed to capture temporal dependencies in both forward and backward directions:
+
+\begin{itemize}
+\item \textbf{Input Layer:} Accepts 100×40 MFCC sequences
+\item \textbf{Bi-LSTM Layer 1:} 128 units (256 total: 128 forward + 128 backward), returns sequences
+\item \textbf{Bi-LSTM Layer 2:} 64 units (128 total: 64 forward + 64 backward), returns sequences
+\item \textbf{Bi-LSTM Layer 3:} 32 units (64 total: 32 forward + 32 backward)
+\item \textbf{Dropout:} Rate of 0.3 applied between LSTM layers to prevent overfitting
+\item \textbf{Dense Layer 1:} 64 units with ReLU activation and Dropout (rate: 0.4)
+\item \textbf{Output Layer:} 2 units with softmax activation for binary classification
+\end{itemize}
+
+The architecture will be implemented using TensorFlow/Keras with Adam optimizer (learning rate: 0.0001) and trained with early stopping (patience: 20 epochs). Implementation is scheduled for Week 7, following CNN model completion and evaluation.
+
+
+% ====================================
+% # IV. PRELIMINARY RESULTS (SVM) #
+% ====================================
+
+\section{Preliminary Experimental Results}
+
+\subsection{SVM Baseline Performance}
+
+Table~\ref{tab:svm_results} presents the classification performance of the optimized SVM model on the test set (2,432 samples).
+
+\begin{table}[ht!]
+\centering
+\caption{SVM Classification Results}
+\label{tab:svm_results}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Metric} & \textbf{Negative} & \textbf{Non-Negative} & \textbf{Avg.} \\
+\midrule
+Precision  & 0.82 & 0.75 & 0.80 \\
+Recall     & 0.86 & 0.68 & 0.80 \\
+F1-Score   & 0.84 & 0.71 & 0.80 \\
+\midrule
+\multicolumn{3}{l}{\textbf{Test Accuracy}} & \textbf{79.57\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Performance Analysis}
+
+The SVM baseline achieved 79.57\% test accuracy, which represents a strong foundation for comparison with upcoming deep learning models. Key observations from the preliminary results:
+
+\begin{itemize}
+\item \textbf{Class Imbalance Impact:} The model demonstrates better performance on the Negative class (F1-score: 0.84) compared to Non-Negative (F1-score: 0.71), reflecting the 1.72:1 class ratio present in the training data. This performance gap suggests the model has learned more robust patterns from the majority class.
+
+\item \textbf{Precision-Recall Trade-off:} The Negative class achieves high recall (0.86), indicating the model successfully identifies most negative emotions with few false negatives. However, Non-Negative recall is lower (0.68), suggesting approximately 32\% of non-negative samples are misclassified as negative, likely due to class imbalance.
+
+\item \textbf{Computational Efficiency:} The SVM required only approximately 45 minutes for comprehensive hyperparameter optimization (grid search with 5-fold cross-validation) and final model training, demonstrating excellent computational efficiency suitable for resource-constrained environments.
+
+\item \textbf{Balanced Class Weights:} Employing balanced class weights (inversely proportional to class frequencies) improved performance on the minority class compared to preliminary experiments with unweighted training, preventing the model from becoming biased toward the majority class.
+\end{itemize}
+
+\subsection{Error Analysis}
+
+Preliminary analysis of misclassified samples reveals:
+
+\begin{enumerate}
+\item \textbf{Surprise Confusion}: Surprise samples (652 total) show the highest error rate, likely due to:
+   \begin{itemize}
+   \item Underrepresentation in training data (5.4\%)
+   \item Acoustic similarity to both fear (negative) and happy (non-negative)
+   \end{itemize}
+
+\item \textbf{Neutral Ambiguity}: Some neutral samples are misclassified as negative, possibly due to:
+   \begin{itemize}
+   \item Low emotional intensity making them difficult to distinguish
+   \item Variability in "neutral" expression across different actors
+   \end{itemize}
+
+\item \textbf{Cross-Dataset Variability}: Differences in recording conditions and actor styles across the four source databases may contribute to misclassification.
+\end{enumerate}
+
+\subsection{Comparison with Literature}
+
+Our SVM baseline performance (79.57\% accuracy) compares favorably with related work on emotion recognition:
+
+\begin{itemize}
+\item Nwe et al. \cite{nwe2003speech} reported approximately 78\% accuracy on 6-class emotion recognition using similar MFCC-based features and SVM classification.
+
+\item Zhang et al. \cite{zhang2018speech} achieved comparable performance in the 75-80\% range for binary valence (positive/negative) classification tasks.
+\end{itemize}
+
+These comparisons provide confidence that our baseline implementation is competitive with existing literature and that our dual feature extraction strategy (statistical aggregation for SVM, sequential representation for deep learning) is appropriate and effective for this binary emotion classification task.
+
+
+% =============================
+% # V. REMAINING WORK & TIMELINE #
+% =============================
+
+\section{Remaining Work and Updated Timeline}
+
+\subsection{Completed Tasks (Weeks 1-6)}
+
+\begin{itemize}
+\item[$\checkmark$] Literature review and methodology design
+\item[$\checkmark$] Dataset collection, merging, and preprocessing
+\item[$\checkmark$] Dual feature extraction pipeline implementation
+\item[$\checkmark$] SVM baseline development and evaluation
+\item[$\checkmark$] CNN architecture design and initial implementation
+\item[$\checkmark$] Progress report preparation
+\end{itemize}
+
+\subsection{In-Progress Tasks (Week 6-7)}
+
+\begin{itemize}
+\item CNN model training and hyperparameter tuning (80\% complete)
+\item Initial performance evaluation and comparison with SVM
+\item Training dynamics visualization (loss curves, accuracy)
+\end{itemize}
+
+\subsection{Remaining Tasks (Week 7-10)}
+
+\begin{table}[ht!]
+\centering
+\caption{Remaining Work Schedule}
+\label{tab:remaining_timeline}
+\begin{tabular}{clp{5cm}}
+\toprule
+\textbf{Week} & \textbf{Task} & \textbf{Description} \\
+\midrule
+7 & CNN Completion & Finalize training, evaluate, and analyze results \\
+\midrule
+7-8 & Bi-LSTM Implementation & Architecture implementation, training, and evaluation \\
+\midrule
+8-9 & Comprehensive Analysis & 
+  \begin{itemize}
+  \item Performance comparison
+  \item Statistical significance testing
+  \item Confusion matrix analysis
+  \item Training time comparison
+  \item Error pattern identification
+  \end{itemize} \\
+\midrule
+9-10 & Documentation & 
+  \begin{itemize}
+  \item Final report writing
+  \item Conference paper preparation
+  \item Code documentation
+  \item README and reproduction guide
+  \end{itemize} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Expected Outcomes}
+
+Upon project completion, we expect to deliver:
+
+\begin{enumerate}
+\item \textbf{Final Report}: IEEE conference format with complete results
+\item \textbf{Trained Models}: All three models with checkpoints
+\item \textbf{Source Code}: Documented Python implementation with reproduction instructions
+\item \textbf{Analysis}: Comprehensive comparison addressing:
+   \begin{itemize}
+   \item Accuracy and per-class performance metrics
+   \item Training time and computational efficiency
+   \item Model complexity and deployment feasibility
+   \item Error patterns and failure cases
+   \end{itemize}
+\item \textbf{Recommendations}: Practical guidelines for model selection based on application requirements
+\end{enumerate}
+
+
+% ====================
+% # VI. CHALLENGES #
+% ====================
+
+\section{Challenges and Mitigation Strategies}
+
+\subsection{Encountered Challenges}
+
+\subsubsection{Class Imbalance}
+The 1.72:1 ratio between Negative and Non-Negative classes presented a challenge. We addressed this by:
+\begin{itemize}
+\item Using balanced class weights in SVM
+\item Planning to use weighted loss functions for deep learning models
+\item Ensuring stratified sampling in train-test split
+\end{itemize}
+
+\subsubsection{Surprise Underrepresentation}
+With only 652 surprise samples (5.4\%), the model has limited exposure to this emotion. Mitigation strategies include:
+\begin{itemize}
+\item Careful analysis of surprise-specific errors
+\item Consideration of data augmentation techniques (pitch shifting, time stretching)
+\item Acknowledging this limitation in final analysis
+\end{itemize}
+
+\subsubsection{Cross-Dataset Variability}
+Merging four databases with different recording conditions, actor demographics, and expression styles introduced variability. We addressed this through:
+\begin{itemize}
+\item Consistent preprocessing pipeline (resampling to 22,050 Hz)
+\item Normalization of extracted features
+\item Random shuffling before train-test split to mix sources
+\end{itemize}
+
+\subsection{Anticipated Challenges}
+
+\subsubsection{Deep Learning Training Time}
+Deep learning models (especially Bi-LSTM) may require extended training time on our hardware. We plan to:
+\begin{itemize}
+\item Use early stopping to prevent unnecessary epochs
+\item Implement efficient data loading with TensorFlow pipelines
+\item Consider reducing batch size if memory constraints arise
+\end{itemize}
+
+\subsubsection{Hyperparameter Optimization}
+Deep learning models have many hyperparameters. We will:
+\begin{itemize}
+\item Start with literature-recommended values
+\item Perform limited grid search on critical parameters (learning rate, dropout)
+\item Use validation set performance for model selection
+\end{itemize}
+
+
+% ==================
+% # VII. CONCLUSION #
+% ==================
+
+\section{Conclusion}
+
+This progress report documents significant advancement in our binary speech emotion recognition research. We have successfully:
+
+\begin{enumerate}
+\item Merged four publicly available databases into a comprehensive dataset of 12,162 audio samples
+\item Implemented dual feature extraction strategies for traditional and deep learning approaches
+\item Developed and evaluated an SVM baseline achieving 79.57\% test accuracy
+\item Initiated CNN implementation with architecture design completed
+\end{enumerate}
+
+The SVM baseline demonstrates that binary emotion classification is feasible with traditional machine learning approaches, achieving balanced performance (F1 = 0.80) despite class imbalance. Preliminary error analysis has identified specific challenges, including surprise underrepresentation and neutral ambiguity, which will inform the development and evaluation of deep learning models.
+
+With CNN training nearing completion and Bi-LSTM implementation scheduled for the next phase, we remain on track to complete all planned experiments and deliver comprehensive analysis by Week 10. The remaining work will focus on completing deep learning implementations, conducting thorough comparative analysis, and documenting findings in a final conference paper.
+
+
+% ==================
+% # ACKNOWLEDGMENT #
+% ==================
+
+\section*{Acknowledgment}
+We thank the Department of Informatics Engineering, Universitas Syiah Kuala, for providing computational resources and guidance. We acknowledge the creators of CREMA-D, RAVDESS, SAVEE, and TESS for making their datasets publicly available. We also thank our supervisors for valuable feedback on this progress report.
+
+
+% ==============
+% # REFERENCES #
+% ==============
+
+\bibliographystyle{IEEEtran}
+\bibliography{IEEEabrv,biblio_ser}
+
+\end{document}

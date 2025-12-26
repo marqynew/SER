@@ -1,0 +1,259 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage[pdftex]{graphicx}
+\graphicspath{{../pdf/}{../jpeg/}}
+\DeclareGraphicsExtensions{.pdf,.jpeg,.png}
+
+\usepackage[cmex10]{amsmath}
+\usepackage{algorithmic}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{url}
+\hyphenation{op-tical net-works semi-conduc-tor emo-tion recog-ni-tion}
+
+
+\begin{document}
+
+\title{\LARGE Binary Speech Emotion Recognition: A Comparative Study of SVM, CNN, and Bi-LSTM Approaches\\
+\vspace{0.3em}
+\large \textit{Project Proposal}}
+
+\author{\authorblockN{Ammar Qurthuby\authorrefmark{1}, Habibi\authorrefmark{1}}
+\authorblockA{\authorrefmark{1}Department of Informatics Engineering, Universitas Syiah Kuala\\
+Email: \{ammar22, habibi123\}@mhs.usk.ac.id}}
+
+\maketitle
+
+\begin{abstract}
+This proposal presents a research plan for developing and comparing three machine learning approaches for binary speech emotion recognition (SER): Support Vector Machine (SVM), 1D Convolutional Neural Network (CNN), and Bidirectional Long Short-Term Memory (Bi-LSTM). We aim to classify emotions into two categories: Negative (angry, disgust, fear, sad) and Non-Negative (happy, neutral, surprise). Using a merged dataset combining CREMA-D, RAVDESS, SAVEE, and TESS containing approximately 12,000 audio samples, we will extract dual feature sets: statistical features for SVM and sequential MFCC features for deep learning models. The project will systematically compare traditional machine learning and deep learning approaches to identify the most effective method for binary emotion classification, with applications in mental health monitoring and human-computer interaction.
+\end{abstract}
+
+\IEEEoverridecommandlockouts
+\begin{keywords}
+Speech Emotion Recognition, Binary Classification, Support Vector Machine, Convolutional Neural Network, Bidirectional LSTM, MFCC Features, Mental Health Applications
+\end{keywords}
+
+\IEEEpeerreviewmaketitle
+
+
+% ===================
+% # I. INTRODUCTION #
+% ===================
+
+\section{Introduction}
+
+Speech emotion recognition (SER) has become increasingly important in various applications including human-computer interaction, customer service systems, mental health monitoring, and intelligent personal assistants \cite{schuller2018speech, el2011survey}. The ability to automatically detect emotional states from speech signals can significantly enhance user experience and enable early detection of mental health conditions such as depression and anxiety \cite{cummins2015review}.
+
+Traditional SER systems typically classify emotions into multiple discrete categories (e.g., happy, sad, angry, neutral) based on dimensional models or categorical approaches \cite{ekman1992argument}. However, for clinical and practical applications, binary classification of emotions into Negative and Non-Negative categories offers several advantages: (1) simplified decision-making for automated systems, (2) higher classification accuracy due to reduced complexity, and (3) direct clinical relevance for mental health screening \cite{valstar2016avec}.
+
+Various machine learning approaches have been proposed for SER, ranging from traditional methods such as Support Vector Machines (SVM) and Random Forests to deep learning architectures including Convolutional Neural Networks (CNN) and Recurrent Neural Networks (RNN) \cite{zhang2018speech}. While deep learning models have shown promising results on multi-class emotion recognition tasks, their performance on binary classification and the trade-offs between model complexity and accuracy remain relatively unexplored.
+
+\subsection{Research Objectives}
+
+This project aims to achieve the following objectives:
+
+\begin{itemize}
+\item Develop and implement three representative machine learning approaches for binary SER: SVM with RBF kernel, 1D-CNN, and Bidirectional LSTM
+\item Design and extract appropriate feature sets tailored to each model architecture
+\item Conduct systematic comparison of model performance using accuracy, precision, recall, and F1-score metrics
+\item Analyze the trade-offs between model complexity, training time, and classification performance
+\item Provide practical recommendations for deploying binary SER systems in real-world applications
+\end{itemize}
+
+\subsection{Contributions}
+
+The expected contributions of this research include:
+
+\begin{itemize}
+\item A comprehensive comparative study of traditional machine learning (SVM) and deep learning approaches (CNN, Bi-LSTM) specifically for binary SER
+\item Analysis of dual feature extraction strategies: statistical features for traditional classifiers and sequential features for deep learning models
+\item Empirical insights into the effectiveness of different architectures for binary emotion classification
+\item Detailed performance analysis and practical deployment guidelines
+\end{itemize}
+
+
+% ====================
+% # II. RELATED WORK #
+% ====================
+
+\section{Related Work}
+
+\subsection{Speech Emotion Recognition Approaches}
+
+Speech emotion recognition has been extensively studied using various machine learning approaches. Traditional methods include Hidden Markov Models (HMM), Gaussian Mixture Models (GMM), and Support Vector Machines \cite{nwe2003speech}. El Ayadi et al. \cite{el2011survey} provided a comprehensive survey showing that SVM with appropriate kernel functions consistently achieves competitive performance across different emotion recognition tasks.
+
+Deep learning has gained prominence in SER in recent years. Convolutional Neural Networks have been successfully applied to spectrogram representations of speech \cite{badshah2017speech, sarma2018emotion}. Recurrent architectures, particularly LSTM and Bi-LSTM, have shown promise in capturing temporal dependencies in speech signals \cite{mirsamadi2017automatic, huang2014speech}. However, comparative studies show mixed results regarding whether CNN or RNN architectures perform better for emotion recognition \cite{zhang2018speech}.
+
+\subsection{Feature Extraction for SER}
+
+Acoustic features play a crucial role in emotion recognition. Mel-Frequency Cepstral Coefficients (MFCC) remain the most widely used features due to their effectiveness in capturing spectral envelope information \cite{davis1980comparison}. Other commonly used features include pitch, energy, zero-crossing rate, and spectral features \cite{schuller2009acoustic}.
+
+Recent work has explored using raw waveforms with deep learning \cite{trigeorgis2016adieu}, but hand-crafted features like MFCC still provide strong baselines and require less computational resources. The choice between statistical aggregation versus sequential representation of features depends on the classification algorithm \cite{eyben2010opensmile}.
+
+\subsection{Binary vs. Multi-Class Classification}
+
+While most SER research focuses on multi-class classification (typically 4-8 emotion categories), binary classification has received less attention. Valstar et al. \cite{valstar2016avec} highlighted the importance of binary valence (positive/negative) classification for clinical applications. Studies in depression detection have shown that binary emotion classification can achieve higher accuracy than fine-grained emotion recognition \cite{cummins2015review}.
+
+
+% =======================
+% # III. PROPOSED METHOD #
+% =======================
+
+\section{Proposed Methodology}
+
+\subsection{Dataset}
+
+We will use a merged dataset combining four publicly available speech emotion databases: CREMA-D (Crowd-sourced Emotional Multimodal Actors Dataset), RAVDESS (Ryerson Audio-Visual Database of Emotional Speech and Song), SAVEE (Surrey Audio-Visual Expressed Emotion), and TESS (Toronto Emotional Speech Set) \cite{cao2014crema, livingstone2018ryerson, haq2008savee, dupuis2010tess}.
+
+The combined dataset will contain approximately 12,000 audio samples from diverse speakers with various demographic backgrounds. For binary classification, emotions will be grouped as:
+\begin{itemize}
+\item \textbf{Negative}: angry, disgust, fear, sad
+\item \textbf{Non-Negative}: happy, neutral, surprise
+\end{itemize}
+
+The dataset will be split into training (80\%) and test (20\%) sets using stratified sampling to maintain class balance.
+
+\subsection{Feature Extraction Strategy}
+
+We propose two different feature extraction approaches:
+
+\subsubsection{Statistical Features for SVM}
+
+For traditional machine learning approaches, we will extract 80-dimensional statistical feature vectors from each audio sample:
+
+\begin{itemize}
+\item \textbf{MFCC Statistics (40D):} Mean and standard deviation of 20 Mel-Frequency Cepstral Coefficients, capturing spectral envelope characteristics
+\item \textbf{Acoustic Features (40D):} Temporal statistics (mean, std) of zero-crossing rate, spectral centroid, spectral bandwidth, spectral rolloff, and RMS energy, providing complementary acoustic information
+\end{itemize}
+
+\subsubsection{Sequential Features for Deep Learning}
+
+For CNN and Bi-LSTM models, we will extract sequential MFCC representations preserving temporal dynamics:
+
+\begin{itemize}
+\item \textbf{Feature Dimension:} 40 MFCC coefficients extracted per time frame
+\item \textbf{Sequence Length:} Fixed length of 100 time steps (padded or truncated as needed)
+\item \textbf{Representation:} Resulting 100×40 matrices per audio sample for temporal pattern learning
+\end{itemize}
+
+\subsection{Proposed Model Architectures}
+
+\subsubsection{Support Vector Machine}
+\begin{itemize}
+\item \textbf{Kernel:} Radial Basis Function (RBF) for non-linear classification
+\item \textbf{Hyperparameter Optimization:} Grid search with 5-fold cross-validation
+\item \textbf{Search Parameters:}
+  \begin{itemize}
+  \item Regularization parameter $C$: Controls margin softness
+  \item Kernel coefficient $\gamma$: Controls decision boundary curvature
+  \end{itemize}
+\item \textbf{Class Weights:} Balanced weighting to handle potential class imbalance
+\end{itemize}
+
+\subsubsection{1D Convolutional Neural Network}
+
+The proposed CNN architecture will include:
+
+\begin{itemize}
+\item \textbf{Architecture:} Three convolutional blocks with progressively increasing filter depths (64, 128, 256 filters)
+\item \textbf{Regularization:} Batch normalization after each convolutional layer and max pooling for spatial dimensionality reduction
+\item \textbf{Dimensionality Reduction:} Global average pooling to minimize parameters and prevent overfitting
+\item \textbf{Classification Layers:} Fully connected dense layers with dropout (rate: 0.5) for final classification
+\item \textbf{Optimization:} Adam optimizer with initial learning rate of 0.001 and early stopping mechanism
+\end{itemize}
+
+\subsubsection{Bidirectional LSTM}
+
+The proposed Bi-LSTM architecture will consist of:
+
+\begin{itemize}
+\item \textbf{Architecture:} Three stacked bidirectional LSTM layers with decreasing units (128, 64, 32 units per direction)
+\item \textbf{Temporal Processing:} Bidirectional processing to capture both past and future context in speech sequences
+\item \textbf{Regularization:} Dropout (rate: 0.3) between LSTM layers to prevent overfitting
+\item \textbf{Classification Layers:} Fully connected dense layers for mapping LSTM outputs to emotion classes
+\item \textbf{Optimization:} Adam optimizer with lower learning rate of 0.0001 for stable convergence
+\end{itemize}
+
+\subsection{Evaluation Plan}
+
+Models will be evaluated using:
+\begin{itemize}
+\item \textbf{Performance Metrics}: Accuracy, Precision, Recall, F1-Score
+\item \textbf{Confusion Matrix}: Detailed error analysis
+\item \textbf{Training Efficiency}: Training time and convergence behavior
+\item \textbf{Statistical Testing}: Results averaged over 3 independent runs
+\end{itemize}
+
+
+% =========================
+% # IV. EXPECTED OUTCOMES #
+% =========================
+
+\section{Expected Outcomes and Timeline}
+
+\subsection{Expected Results}
+
+Based on literature review, we anticipate:
+\begin{itemize}
+\item All three models achieving >75\% accuracy on binary classification
+\item Deep learning models potentially outperforming SVM due to automatic feature learning
+\item Trade-offs between model complexity and computational efficiency
+\item Insights into which architecture is most suitable for binary SER
+\end{itemize}
+
+\subsection{Project Timeline}
+
+\begin{table}[ht!]
+\centering
+\caption{Project Timeline}
+\begin{tabular}{ll}
+\toprule
+\textbf{Week} & \textbf{Activities} \\
+\midrule
+1-2 & Dataset collection and preprocessing \\
+3-4 & Feature extraction implementation \\
+5-6 & SVM model development and tuning \\
+7-8 & CNN model development and training \\
+9-10 & Bi-LSTM model development and training \\
+11-12 & Results analysis and comparison \\
+13-14 & Documentation and final report \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Resources Required}
+
+\begin{itemize}
+\item \textbf{Hardware}: Computer with GPU support (NVIDIA GTX 1660 Ti or equivalent)
+\item \textbf{Software}: Python 3.8+, TensorFlow/Keras, scikit-learn, librosa
+\item \textbf{Datasets}: CREMA-D, RAVDESS, SAVEE, TESS (all publicly available)
+\item \textbf{Computing Time}: Estimated 40-50 hours for training all models
+\end{itemize}
+
+
+% ==================
+% # V. CONCLUSION #
+% ==================
+
+\section{Conclusion}
+
+This proposal outlines a comprehensive research plan for comparing three machine learning approaches for binary speech emotion recognition. By systematically evaluating SVM, 1D-CNN, and Bi-LSTM on a large merged dataset, we aim to provide practical insights for developing emotion recognition systems. The dual feature extraction strategy allows fair comparison between traditional and deep learning methods. Expected outcomes include identifying the most effective approach for binary SER and providing deployment guidelines for real-world applications in mental health monitoring and human-computer interaction.
+
+
+% ==================
+% # ACKNOWLEDGMENT #
+% ==================
+
+\section*{Acknowledgment}
+We would like to thank the Department of Informatics Engineering, Universitas Syiah Kuala, for providing the computational resources and guidance for this research project.
+
+
+% ==============
+% # REFERENCES #
+% ==============
+
+\bibliographystyle{IEEEtran}
+\bibliography{IEEEabrv,biblio_ser}
+
+\end{document}
